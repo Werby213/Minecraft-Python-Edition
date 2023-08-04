@@ -4,13 +4,15 @@ from settings import *
 
 
 class Player(Camera):
-    def __init__(self, app, position=PLAYER_POS, yaw=-90, pitch=0):
+    def __init__(self, app, position=PLAYER_POS, rotation=PLAYER_ROT):
         self.app = app
-        super().__init__(position, yaw, pitch)
+        self.velocity = glm.vec3(0, 0, 0)
+        super().__init__(position, rotation)
 
     def update(self):
         self.keyboard_control()
         self.mouse_control()
+        self.position += self.velocity * self.app.delta_time
         super().update()
 
     def handle_event(self, event):
@@ -31,16 +33,15 @@ class Player(Camera):
 
     def keyboard_control(self):
         key_state = pg.key.get_pressed()
-        vel = PLAYER_SPEED * self.app.delta_time
-        if key_state[pg.K_w]:
-            self.move_forward(vel)
-        if key_state[pg.K_s]:
-            self.move_back(vel)
-        if key_state[pg.K_d]:
-            self.move_right(vel)
-        if key_state[pg.K_a]:
-            self.move_left(vel)
-        if key_state[pg.K_q]:
-            self.move_up(vel)
-        if key_state[pg.K_e]:
-            self.move_down(vel)
+
+        input_vel = int(key_state[pg.K_d]) * self.right
+        input_vel -= int(key_state[pg.K_q]) * self.right
+        input_vel += int(key_state[pg.K_z]) * self.forward
+        input_vel -= int(key_state[pg.K_s]) * self.forward
+
+        if glm.length(input_vel) > 0:
+            input_vel = glm.normalize(glm.vec3(input_vel.x, 0, input_vel.z)) * PLAYER_SPEED
+
+        y_vel = (int(key_state[pg.K_SPACE]) - int(key_state[pg.K_LSHIFT])) * PLAYER_SPEED
+
+        self.velocity = input_vel + glm.vec3(0, y_vel, 0)
