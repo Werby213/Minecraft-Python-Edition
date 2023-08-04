@@ -3,13 +3,23 @@ import numpy as np
 import glm
 import math
 
+# voxel ids
+FACES = [
+    ( 0, 1, 0),
+    ( 0,-1, 0),
+    (-1, 0, 0),
+    ( 1, 0, 0),
+    ( 0, 0, 1),
+    ( 0, 0,-1),
+]
+
 # OpenGL settings
 MAJOR_VER, MINOR_VER = 3, 3
 DEPTH_SIZE = 24
 NUM_SAMPLES = 1  # antialiasing
 
 # resolution
-WIN_RES = glm.vec2(1600, 900)
+WIN_RES = glm.vec2(1280, 720)
 
 # world generation
 SEED = 16
@@ -46,8 +56,9 @@ PITCH_MAX = glm.radians(89)
 # player
 PLAYER_SPEED = 0.005
 PLAYER_ROT_SPEED = 0.003
-# PLAYER_POS = glm.vec3(CENTER_XZ, WORLD_H * CHUNK_SIZE, CENTER_XZ)
+# PLAYER_POS = glm.vec3(CENTER_XZ, WORLD_H * CHUNK_SIZE + 100, CENTER_XZ)
 PLAYER_POS = glm.vec3(CENTER_XZ, CHUNK_SIZE, CENTER_XZ)
+PLAYER_ROT = glm.vec2(-90, -45)
 MOUSE_SENSITIVITY = 0.002
 
 # colors
@@ -81,3 +92,12 @@ WATER_AREA = 5 * CHUNK_SIZE * WORLD_W
 # cloud
 CLOUD_SCALE = 25
 CLOUD_HEIGHT = WORLD_H * CHUNK_SIZE * 2
+
+# agent
+STREAM_SIZE = 32
+AGENT_WALKING_SPEED = 0.005
+AGENT_GRAVITY = 5e-6
+AGENT_TERMINAL_VELOCITY = 10e-3
+AGENT_ROTAION_SPEED = 0.003
+AGENT_HEIGHT = 2 # int
+AGENT_JUMP_SPEED = 0.005
