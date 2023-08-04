@@ -20,8 +20,8 @@ class AgentMesh(BaseMesh):
 
     def get_vertex_data(self):
         vertices = [
-            (0, 0, 1), (1, 0, 1), (1, AGENT_HEIGHT, 1), (0, AGENT_HEIGHT, 1),
-            (0, AGENT_HEIGHT, 0), (0, 0, 0), (1, 0, 0), (1, AGENT_HEIGHT, 0)
+            (0, 0, AGENT_WIDTH), (AGENT_WIDTH, 0, AGENT_WIDTH), (AGENT_WIDTH, AGENT_HEIGHT, AGENT_WIDTH), (0, AGENT_HEIGHT, AGENT_WIDTH),
+            (0, AGENT_HEIGHT, 0), (0, 0, 0), (AGENT_WIDTH, 0, 0), (AGENT_WIDTH, AGENT_HEIGHT, 0)
         ]
         indices = [
             (0, 2, 3), (0, 1, 2),

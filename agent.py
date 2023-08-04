@@ -2,6 +2,7 @@ import pygame as pg
 import numpy as np
 from settings import *
 from meshes.agent_mesh import AgentMesh
+from utils import *
 # from processor import Processor
 
 class Agent():
@@ -91,7 +92,7 @@ class Agent():
         # walking
         speed = AGENT_WALKING_SPEED
         d = dt * speed # distance covered this tick.
-        dx, dy, dz = self.get_motion_vector()
+        dx, dy, dz = get_motion_vector(self.strafe, self.rotation)
         # New position in space, before accounting for gravity.
         dx, dy, dz = dx * d, dy * d, dz * d
         # gravity
@@ -107,17 +108,19 @@ class Agent():
         x, y, z = self.collide((x + dx, y + dy, z + dz))
         self.position = glm.vec3(x, y, z)
 
-        drx, drz = self.get_rotation_vector()
-        rotation_speed = dt * AGENT_ROTAION_SPEED
+        drx, drz = get_rotation_vector(self.rotation, self.rotation_speed)
+        rotation_speed = dt * AGENT_ROTATION_SPEED
         self.rotation = glm.vec2(self.rotation[0] + drx * rotation_speed, self.rotation[1] + drz * rotation_speed)
 
     def set_uniform(self):
         self.mesh.program['m_model'].write(self.get_model_matrix())
 
     def get_model_matrix(self):
-        m_model = glm.translate(glm.mat4(), glm.vec3(self.position))
-        m_model = glm.rotate(m_model, self.rotation.x, glm.vec3(0, 1, 0))
-        m_model = glm.rotate(m_model, self.rotation.y, glm.vec3(1, 0, 0))
+        m_model = glm.translate(glm.mat4(), glm.vec3(self.position) + glm.vec3(AGENT_WIDTH/2, 0, AGENT_WIDTH/2))
+        
+        # rotate around center y axis
+        m_model = glm.rotate(m_model, glm.radians(-self.rotation[0]), glm.vec3(0, 1, 0))
+        m_model = glm.translate(m_model, glm.vec3(-0.5, 0, -0.5))
         
         return m_model
     
@@ -152,85 +155,47 @@ class Agent():
         if self.dy == 0:
             self.dy = AGENT_JUMP_SPEED
             self.jump_key_pressed = True
-
-    def get_rotation_vector(self):
-        dx, dy = self.rotation_speed
-        x, y = self.rotation
-        nx, ny = x + dx, y + dy
-        ny = max(-90, min(90, y))
-        return (nx - x, ny - y)
     
-    def get_block_position(self, position):
-        """ Accepts `position` of arbitrary precision and returns the block
-        containing that position.
-
-        Parameters
-        ----------
-        position : tuple of len 3
-
-        Returns
-        -------
-        block_position : tuple of ints of len 3
-
-        """
-        x, y, z = position
-        x, y, z = (np.rint(x), np.rint(y), np.rint(z))
-        return (x, y, z)
-
-    
-    def get_motion_vector(self):
-        """ Returns the current motion vector indicating the velocity of the
-        player.
-
-        Returns
-        -------
-        vector : tuple of len 3
-            Tuple containing the velocity in x, y, and z respectively.
-
-        """
-        if any(self.strafe):
-            x, _ = self.rotation
-            s = math.degrees(math.atan2(*self.strafe))
-            x_angle = math.radians(x + s)
-            dy = 0.0
-            dx = math.cos(x_angle)
-            dz = math.sin(x_angle)
-        else:
-            dy = 0.0
-            dx = 0.0
-            dz = 0.0
-        return (dx, dy, dz)
-    
+    # stuck along vertical walls problem
     def collide(self, new_position):
-        # How much overlap with a dimension of a surrounding block you need to
-        # have to count as a collision. If 0, touching terrain at all counts as
-        # a collision. If .49, you sink into the ground, as if walking through
-        # tall grass. If >= .5, you'll fall through the ground.
-        pad = 0.05
-        p = list(new_position)
-        np = self.get_block_position(new_position)
-        for face in FACES:  # check all surrounding blocks
-            for i in range(3):  # check each dimension independently
-                if not face[i]:
-                    continue
-                # How much overlap you have with this dimension.
-                d = (p[i] - np[i]) * face[i]
-                if d < pad:
-                    continue
-                for dy in range(math.ceil(AGENT_HEIGHT)):  # check each height
-                    op = list(np)
-                    op[1] += dy
-                    op[i] += face[i]
-                    voxel_id, _, _, _ = self.handler.get_voxel_id(glm.ivec3(op))
-                    if not voxel_id:
-                        continue
-                    p[i] -= (d - pad) * face[i]
-                    if face == (0, -1, 0) or face == (0, 1, 0):
-                        # You are colliding with the ground or ceiling, so stop
-                        # falling / rising.
-                        self.dy = 0
-                    break
-        return tuple(p)
+        agent_aabb = [list(new_position), [new_position[0] + AGENT_WIDTH, new_position[1] + AGENT_HEIGHT, new_position[2] + AGENT_WIDTH]]
+
+        for dx in range(-1, 2):  # check the surrounding blocks in x dimension
+            for dz in range(-1, 2):  # check the surrounding blocks in z dimension
+                for dy in range(AGENT_HEIGHT + 1):  # check each height
+                    block_position = (int(new_position[0] + dx), int(new_position[1] + dy), int(new_position[2] + dz))
+                    block_aabb = (block_position, (block_position[0] + 1, block_position[1] + 1, block_position[2] + 1))
+
+                    if self.aabb_collision(agent_aabb, block_aabb):
+                        voxel_id, _, _, _ = self.handler.get_voxel_id(glm.ivec3(block_position))
+                        if not voxel_id:
+                            continue
+
+                        penetration = [0, 0, 0]
+                        for i in range(3):
+                            penetration[i] = min(abs(agent_aabb[1][i] - block_aabb[0][i]), abs(block_aabb[1][i] - agent_aabb[0][i]))
+
+                        min_axis = penetration.index(min(penetration))
+                        overlap_a = agent_aabb[1][min_axis] - block_aabb[0][min_axis]
+                        overlap_b = block_aabb[1][min_axis] - agent_aabb[0][min_axis]
+
+                        if overlap_a < overlap_b:
+                            agent_aabb[0][min_axis] -= penetration[min_axis]
+                            agent_aabb[1][min_axis] -= penetration[min_axis]
+                        else:
+                            agent_aabb[0][min_axis] += penetration[min_axis]
+                            agent_aabb[1][min_axis] += penetration[min_axis]
+
+                        # If the collision was with the ground (y-axis), stop falling
+                        if min_axis == 1:
+                            self.dy = 0
+
+        return tuple(agent_aabb[0])
+
+    def aabb_collision(self, a, b):
+        return (a[0][0] < b[1][0] and a[1][0] > b[0][0] and
+                a[0][1] < b[1][1] and a[1][1] > b[0][1] and
+                a[0][2] < b[1][2] and a[1][2] > b[0][2])
 
     # def update_stream(self, stream):
     #     self.stream = stream

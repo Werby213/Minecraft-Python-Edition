@@ -5,6 +5,7 @@ import math
 
 # voxel ids
 FACES = [
+    # all 26 possible directions
     ( 0, 1, 0),
     ( 0,-1, 0),
     (-1, 0, 0),
@@ -16,7 +17,7 @@ FACES = [
 # OpenGL settings
 MAJOR_VER, MINOR_VER = 3, 3
 DEPTH_SIZE = 24
-NUM_SAMPLES = 1  # antialiasing
+NUM_SAMPLES = 0 # antialiasing
 
 # resolution
 WIN_RES = glm.vec2(1280, 720)
@@ -46,7 +47,7 @@ CENTER_Y = WORLD_H * H_CHUNK_SIZE
 
 # camera
 ASPECT_RATIO = WIN_RES.x / WIN_RES.y
-FOV_DEG = 50
+FOV_DEG = 60
 V_FOV = glm.radians(FOV_DEG)  # vertical FOV
 H_FOV = 2 * math.atan(math.tan(V_FOV * 0.5) * ASPECT_RATIO)  # horizontal FOV
 NEAR = 0.1
@@ -96,8 +97,9 @@ CLOUD_HEIGHT = WORLD_H * CHUNK_SIZE * 2
 # agent
 STREAM_SIZE = 32
 AGENT_WALKING_SPEED = 0.005
-AGENT_GRAVITY = 5e-6
-AGENT_TERMINAL_VELOCITY = 10e-3
-AGENT_ROTAION_SPEED = 0.003
+AGENT_GRAVITY = 10e-6
+AGENT_TERMINAL_VELOCITY = 20e-3
+AGENT_ROTATION_SPEED = 0.1
 AGENT_HEIGHT = 2 # int
+AGENT_WIDTH = 1 # int
 AGENT_JUMP_SPEED = 0.005
