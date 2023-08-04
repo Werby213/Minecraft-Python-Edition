@@ -1,7 +1,8 @@
 from settings import *
 from world_objects.chunk import Chunk
 from voxel_handler import VoxelHandler
-
+from tqdm import *
+import logging
 
 class World:
     def __init__(self, app):
@@ -16,7 +17,8 @@ class World:
         self.voxel_handler.update()
 
     def build_chunks(self):
-        for x in range(WORLD_W):
+        logging.info("Building chunks...")
+        for x in trange(WORLD_W):
             for y in range(WORLD_H):
                 for z in range(WORLD_D):
                     chunk = Chunk(self, position=(x, y, z))
@@ -31,7 +33,8 @@ class World:
                     chunk.voxels = self.voxels[chunk_index]
 
     def build_chunk_mesh(self):
-        for chunk in self.chunks:
+        logging.info("Building chunk meshes...")
+        for chunk in tqdm(self.chunks):
             chunk.build_mesh()
 
     def render(self):

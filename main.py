@@ -6,7 +6,7 @@ from shader_program import ShaderProgram
 from scene import Scene
 from player import Player
 from textures import Textures
-
+import logging
 
 class VoxelEngine:
     def __init__(self):
@@ -78,5 +78,6 @@ class VoxelEngine:
 
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
     app = VoxelEngine()
     app.run()
