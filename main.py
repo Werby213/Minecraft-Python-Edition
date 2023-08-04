@@ -42,11 +42,20 @@ class VoxelEngine:
     def update(self):
         self.player.update()
         self.shader_program.update()
-        self.scene.update()
 
         self.delta_time = self.clock.tick()
+        self.scene.update(self.delta_time)
+
         self.time = pg.time.get_ticks() * 0.001
-        pg.display.set_caption(f'{self.clock.get_fps() :.0f}')
+        caption = ""
+        caption += f'FPS: {self.clock.get_fps() :.0f} | '
+        caption += f'Position: ({self.player.position.x:.2f}, {self.player.position.y:.2f}, {self.player.position.z:.2f}) | '
+        caption += f'Velocity: ({self.player.velocity.x:.2f}, {self.player.velocity.y:.2f}, {self.player.velocity.z:.2f}) | '
+        # first agent if exists
+        if len(self.scene.agents) > 0:
+            agent = self.scene.agents[0]
+            caption += f'Agent Position: ({agent.position.x:.2f}, {agent.position.y:.2f}, {agent.position.z:.2f})'
+        pg.display.set_caption(caption)
 
     def render(self):
         self.ctx.clear(color=BG_COLOR)
