@@ -4,11 +4,12 @@ Minecraft Clone in Python and OpenGL to run Reinforcement Learning trainings.
 Control: ZQSD + LShift/Space + Mouse + Escape
 
 ## TODO
-- [ ] Base class for World Gen
-- [ ] Two types of World Gen
-- [ ] Customizable World Gen from functions (just like in the menu)
+- [x] Base class for World Gen
+- [x] Two types of World Gen
+- [ ] Dynamic World size
+- [x] Customizable World Gen from functions (just like in the menu)
 - [ ] Seed for World Gen
-- [ ] Save & World and its entities
+- [x] Save & World and its entities
 - [ ] Test to lag the game to see if it doesn't break it
 - [ ] Fix wall climbing
 - [ ] RL processor for agents
