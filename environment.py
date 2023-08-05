@@ -4,10 +4,13 @@ from world import World
 from world_objects.voxel_marker import VoxelMarker
 from world_objects.water import Water
 from world_objects.clouds import Clouds
-from agent import Agent
+
+from rl.agent_handler import AgentHandler
+from rl.agent import Agent
+
 import logging
 
-class Scene:
+class Environment:
     def __init__(self, app):
         logging.info("Initializing scene...")
         self.app = app
@@ -22,18 +25,14 @@ class Scene:
         
         logging.info("Initializing agents...")
         # Agents
-        self.agents = []
-        for _ in range(1):
-            self.agents.append(Agent(self.world.voxel_handler, PLAYER_POS + glm.vec3(0, 500, -10), glm.vec2(0, 0)))
+        self.agent_handler = AgentHandler(self.world.voxel_handler)
 
     def update(self, dt):
         self.world.update()
-
-        for agent in self.agents:
-            agent.update(dt)
-
         self.voxel_marker.update()
         self.clouds.update()
+
+        self.agent_handler.update(dt)
 
     def render(self):
         # chunks rendering
@@ -49,5 +48,4 @@ class Scene:
         self.voxel_marker.render()
 
         # agents rendering
-        for agent in self.agents:
-            agent.render()
+        self.agent_handler.render()
