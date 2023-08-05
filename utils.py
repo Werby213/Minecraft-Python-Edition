@@ -47,3 +47,13 @@ def get_motion_vector(strafe, rotation):
         dx = 0.0
         dz = 0.0
     return (dx, dy, dz)
+
+def generate_caption(clock, player, env):
+    caption = f'FPS: {clock.get_fps() :.0f} | '
+    caption += f'Position: ({player.position.x:.2f}, {player.position.y:.2f}, {player.position.z:.2f}) | '
+    caption += f'Velocity: ({player.velocity.x:.2f}, {player.velocity.y:.2f}, {player.velocity.z:.2f}) | '
+    # first agent if exists
+    if len(env.agent_handler.agents) > 0:
+        agent = env.agent_handler.agents[0]
+        caption += f'Agent Position: ({agent.position.x:.2f}, {agent.position.y:.2f}, {agent.position.z:.2f})'
+    return caption
