@@ -3,14 +3,23 @@ from world_objects.chunk import Chunk
 from voxel_handler import VoxelHandler
 from tqdm import *
 import logging
+import numpy as np
 
 class World:
-    def __init__(self, app):
+    def on_init_new(self, app, terrain_gen):
         self.app = app
+        self.terrain_gen = terrain_gen
         self.chunks = [None for _ in range(WORLD_VOL)]
         self.voxels = np.empty([WORLD_VOL, CHUNK_VOL], dtype='uint8')
         self.build_chunks()
         self.build_chunk_mesh()
+        self.voxel_handler = VoxelHandler(self)
+
+    def on_init_load(self, app, voxels):
+        self.app = app
+        self.chunks = [None for _ in range(WORLD_VOL)]
+        self.voxels = np.empty([WORLD_VOL, CHUNK_VOL], dtype='uint8')
+        self.load(voxels)
         self.voxel_handler = VoxelHandler(self)
 
     def update(self):
@@ -21,9 +30,9 @@ class World:
         for x in trange(WORLD_W):
             for y in range(WORLD_H):
                 for z in range(WORLD_D):
+                    chunk_index = x + WORLD_W * z + WORLD_AREA * y
                     chunk = Chunk(self, position=(x, y, z))
 
-                    chunk_index = x + WORLD_W * z + WORLD_AREA * y
                     self.chunks[chunk_index] = chunk
 
                     # put the chunk voxels in a separate array
@@ -40,3 +49,20 @@ class World:
     def render(self):
         for chunk in self.chunks:
             chunk.render()
+
+    def load(self, voxels):
+        def load_chunks():
+            logging.info("Loading chunks...")
+            for x in trange(WORLD_W):
+                for y in range(WORLD_H):
+                    for z in range(WORLD_D):
+                        chunk_index = x + WORLD_W * z + WORLD_AREA * y
+                        chunk = Chunk(self, position=(x, y, z))
+
+                        self.chunks[chunk_index] = chunk
+                        chunk.is_empty = self.voxels[chunk_index].sum() == 0
+
+                        chunk.voxels = self.voxels[chunk_index]
+        self.voxels = np.copy(voxels)
+        load_chunks()
+        self.build_chunk_mesh()

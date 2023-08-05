@@ -11,11 +11,26 @@ from rl.agent import Agent
 import logging
 
 class Environment:
-    def __init__(self, app):
+    def __init__(self, filename):
+        self.filename = filename
+
+    def on_init_new(self, app, terrain_gen):
         logging.info("Initializing scene...")
         self.app = app
         logging.info("Initializing world...")
-        self.world = World(self.app)
+        self.world = World()
+        self.world.on_init_new(self.app, terrain_gen)
+        self.on_init(app)
+    
+    def on_init_load(self, app, voxels):
+        logging.info("Initializing scene...")
+        self.app = app
+        logging.info("Initializing world...")
+        self.world = World()
+        self.world.on_init_load(self.app, voxels)
+        self.on_init(app)
+
+    def on_init(self, app):
         logging.info("Initializing voxel marker...")
         self.voxel_marker = VoxelMarker(self.world.voxel_handler)
         logging.info("Initializing water...")

@@ -7,11 +7,14 @@ from environment import Environment
 from player import Player
 from textures import Textures
 import logging
+import os
 
 from utils import generate_caption
+from terrain_gen.terrain_gen_flat import TerrainGenFlat
+from terrain_gen.terrain_gen_perlin import TerrainGenPerlin
 
 class VoxelEngine:
-    def __init__(self):
+    def initialize_pygame(self):
         pg.init()
         pg.display.gl_set_attribute(pg.GL_CONTEXT_MAJOR_VERSION, MAJOR_VER)
         pg.display.gl_set_attribute(pg.GL_CONTEXT_MINOR_VERSION, MINOR_VER)
@@ -29,17 +32,26 @@ class VoxelEngine:
         self.delta_time = 0
         self.time = 0
 
-        pg.event.set_grab(True)
         pg.mouse.set_visible(False)
+        pg.event.set_grab(True)
 
         self.is_running = True
-        self.on_init()
 
-    def on_init(self):
+    def on_init_new(self, terrain_gen, filename):
+        self.initialize_pygame()
         self.textures = Textures(self)
-        self.player = Player(self)
+        self.player = Player(self, glm.vec3(CENTER_XZ, 17, CENTER_XZ), glm.vec2(-90, -45))
         self.shader_program = ShaderProgram(self)
-        self.env = Environment(self)
+        self.env = Environment(filename)
+        self.env.on_init_new(self, terrain_gen)
+    
+    def on_init_load(self, voxels, player, filename):
+        self.initialize_pygame()
+        self.textures = Textures(self)
+        self.player = Player(self, glm.vec3(player[:3]), glm.vec2(player[3:]))
+        self.shader_program = ShaderProgram(self)
+        self.env = Environment(filename)
+        self.env.on_init_load(self, voxels)
 
     def update(self):
         self.player.update()
@@ -70,6 +82,30 @@ class VoxelEngine:
         pg.quit()
         sys.exit()
 
+    def save_env(self):
+        # create the folder "saves" if it doesn't exist
+        if not os.path.exists("saves"):
+            os.makedirs("saves")
+        # create the folder "envs" if it doesn't exist
+        path_0 = os.path.join("saves", self.env.filename)
+        if not os.path.exists(path_0):
+            os.makedirs(path_0)
+        path = os.path.join(path_0, "voxels.npy")
+        np.save(path, app.env.world.voxels)
+        path = os.path.join(path_0, "player.npy")
+        np.save(path, [app.player.position.x, app.player.position.y, app.player.position.z, app.player.yaw, app.player.pitch])
+
+    def load_env(self, file_name):
+        # load the environment voxels from a file
+        # create the folder "saves" if it doesn't exist
+        if not os.path.exists("saves"):
+            os.makedirs("saves")
+        path = os.path.join("saves", file_name, "voxels.npy")
+        voxels = np.load(path)
+        path = os.path.join("saves", file_name, "player.npy")
+        player = np.load(path)
+        return voxels, player
+
 def display_menu(title, options, default=1):
     def get_user_choice(min_c, max_c):
         while True:
@@ -90,30 +126,37 @@ def display_menu(title, options, default=1):
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+    app = VoxelEngine()
     mode = display_menu("Select mode", ["Environement Editing", "Agent Training", "Trained Agent Viewing"])
+    
+    if not os.path.exists("saves"):
+        os.makedirs("saves")
+    saved_worlds = [f for f in os.listdir("saves") if os.path.isdir(os.path.join("saves", f))]
+    
     if mode == 1:
         generate_or_load = display_menu("New or load env", ["New", "Load"])
         if generate_or_load == 1:
             env_size = display_menu("Select env size", ["Small", "Medium", "Large"])
             env_type = display_menu("Select env type", ["Flat", "Perlin Noise"])
-            spawn_trees = display_menu("Spawn trees?", ["Yes", "No"])
-            spawn_caves = display_menu("Spawn caves?", ["Yes", "No"])
-            spawn_water = display_menu("Spawn water?", ["Yes", "No"])
+            spawn_trees = 2 - display_menu("Spawn trees?", ["Yes", "No"])
+            spawn_caves = 2 - display_menu("Spawn caves?", ["Yes", "No"])
 
+            generator = None
             if env_type == 1:
-                ground_type = display_menu("Select ground type", ["Grass", "Dirt", "Stone", "Sand", "Snow"])
-                pass
+                ground_type = display_menu("Select ground type", ["Sand", "Grass", "Dirt", "Stone", "Snow", "Leaves", "Wood"])
+                generator = TerrainGenFlat(env_size, spawn_trees, spawn_caves, ground_type)
             elif env_type == 2:
-                pass
+                generator = TerrainGenPerlin(env_size, spawn_trees, spawn_caves)
+            app.on_init_new(generator, input("Enter the name of the environement: "))
         elif generate_or_load == 2:
-            selected_world = display_menu("Select environement", ["Env 1", "Env 2", "Env 3"])
-            pass
+            selected_world = display_menu("Select environement", saved_worlds)
+            voxels, player = app.load_env(saved_worlds[selected_world - 1])
+            app.on_init_load(voxels, player, selected_world)
     elif mode == 2:
-        selected_world = display_menu("Select environement", ["Env 1", "Env 2", "Env 3"])
+        selected_world = display_menu("Select environement", saved_worlds)
         pass
     elif mode == 3:
-        selected_world = display_menu("Select environement", ["Env 1", "Env 2", "Env 3"])
+        selected_world = display_menu("Select environement", saved_worlds)
         pass
 
-    app = VoxelEngine()
     app.run()

@@ -4,7 +4,7 @@ from settings import *
 
 
 class Player(Camera):
-    def __init__(self, app, position=PLAYER_POS, rotation=PLAYER_ROT):
+    def __init__(self, app, position, rotation):
         self.app = app
         self.velocity = glm.vec3(0, 0, 0)
         super().__init__(position, rotation)
@@ -23,6 +23,9 @@ class Player(Camera):
                 voxel_handler.set_voxel()
             if event.button == 3:
                 voxel_handler.switch_mode()
+        if event.type == pg.KEYDOWN:
+            if event.key == pg.K_e:
+                self.app.save_env()
 
     def mouse_control(self):
         mouse_dx, mouse_dy = pg.mouse.get_rel()
