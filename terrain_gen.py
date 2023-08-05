@@ -29,7 +29,7 @@ def get_height(x, z):
     height = max(height,  noise2(x * f8, z * f8) + 2)
     height *= island
 
-    return int(height)
+    return 15 # TODO int(height)
 
 
 @njit
