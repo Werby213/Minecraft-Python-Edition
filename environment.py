@@ -22,15 +22,15 @@ class Environment:
         self.world.on_init_new(self.app, terrain_gen)
         self.on_init(app)
     
-    def on_init_load(self, app, voxels):
+    def on_init_load(self, app, voxels, spawn_agents=False):
         logging.info("Initializing scene...")
         self.app = app
         logging.info("Initializing world...")
         self.world = World()
         self.world.on_init_load(self.app, voxels)
-        self.on_init(app)
+        self.on_init(app, spawn_agents)
 
-    def on_init(self, app):
+    def on_init(self, app, spawn_agents=False):
         logging.info("Initializing voxel marker...")
         self.voxel_marker = VoxelMarker(self.world.voxel_handler)
         logging.info("Initializing water...")
@@ -42,11 +42,18 @@ class Environment:
         # Agents
         self.agent_handler = AgentHandler(self.world.voxel_handler)
 
+        if spawn_agents:
+            # find the agent spawn block in the world
+            agent_spawn_block = None
+            agent_spawn_block_pos = self.app.player.position + glm.vec3(0, 0, 5) # TODO find a better way to do this
+            
+            self.agent_handler.spawn_agents(1, agent_spawn_block_pos, glm.vec2(0, 0))
+            self.agent_handler.freeze()
+
     def update(self, dt):
         self.world.update()
         self.voxel_marker.update()
         self.clouds.update()
-
         self.agent_handler.update(dt)
 
     def render(self):

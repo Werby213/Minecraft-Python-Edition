@@ -1,3 +1,4 @@
+from rl.agent import Agent
 from settings import *
 import moderngl as mgl
 import pygame as pg
@@ -45,13 +46,14 @@ class VoxelEngine:
         self.env = Environment(filename)
         self.env.on_init_new(self, terrain_gen)
     
-    def on_init_load(self, voxels, player, filename):
+    def on_init_load(self, voxels, player, filename, spawn_agents=False):
         self.initialize_pygame()
         self.textures = Textures(self)
-        self.player = Player(self, glm.vec3(player[:3]), glm.vec2(player[3:]))
+        self.player = Player(self, glm.vec3(player[:3]), player[3:])
         self.shader_program = ShaderProgram(self)
         self.env = Environment(filename)
-        self.env.on_init_load(self, voxels)
+
+        self.env.on_init_load(self, voxels, spawn_agents)
 
     def update(self):
         self.player.update()
@@ -75,10 +77,14 @@ class VoxelEngine:
             self.player.handle_event(event=event)
 
     def run(self):
+        first_freeze = False # TODO remove this
         while self.is_running:
             self.handle_events()
             self.update()
             self.render()
+            if self.env.agent_handler.frozen and not first_freeze:
+                self.env.agent_handler.unfreeze()
+                first_freeze = True
         pg.quit()
         sys.exit()
 
@@ -150,11 +156,15 @@ if __name__ == '__main__':
             app.on_init_new(generator, input("Enter the name of the environement: "))
         elif generate_or_load == 2:
             selected_world = display_menu("Select environement", saved_worlds)
-            voxels, player = app.load_env(saved_worlds[selected_world - 1])
-            app.on_init_load(voxels, player, selected_world)
+            loaded_world_name = saved_worlds[selected_world - 1]
+            voxels, player = app.load_env(loaded_world_name)
+            app.on_init_load(voxels, player, loaded_world_name)
     elif mode == 2:
         selected_world = display_menu("Select environement", saved_worlds)
-        pass
+        loaded_world_name = saved_worlds[selected_world - 1]
+        voxels, player = app.load_env(loaded_world_name)
+
+        app.on_init_load(voxels, player, loaded_world_name, True)
     elif mode == 3:
         selected_world = display_menu("Select environement", saved_worlds)
         pass
