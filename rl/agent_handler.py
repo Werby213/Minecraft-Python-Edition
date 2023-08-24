@@ -5,8 +5,11 @@ class AgentHandler:
         self.app = voxel_handler.app
         self.handler = voxel_handler
         self.agents = []
+        self.frozen = False
 
     def update(self, dt):
+        if self.frozen:
+            return
         for agent in self.agents:
             agent.update(dt)
 
@@ -17,6 +20,12 @@ class AgentHandler:
     def spawn_agents(self, count, position, rotation):
         for _ in range(count):
             self.agents.append(Agent(self.handler, position, rotation))
+
+    def freeze(self):
+        self.frozen = True
+    
+    def unfreeze(self):
+        self.frozen = False
     
     def kill_all_agents(self):
         self.agents.clear()
