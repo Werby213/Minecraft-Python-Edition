@@ -1,6 +1,5 @@
 import pygame as pg
-import numpy as np
-from agent_camera import AgentCamera
+from rl.agent_camera import AgentCamera
 from settings import *
 from meshes.agent_mesh import AgentMesh
 from utils import *
