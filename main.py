@@ -42,7 +42,9 @@ class VoxelEngine:
         self.camera = camera
         self.shader_program.set_camera(camera)
 
-    def get_stream(self):
+    def get_stream(self, agent):
+        # set the camera to the agent's camera
+        self.set_camera(agent.camera)
         # Read the modern gl screen and store the screenshot into a numpy array
         width, height = STREAM_ASPECT
         # change the context viewport to the stream aspect ratio

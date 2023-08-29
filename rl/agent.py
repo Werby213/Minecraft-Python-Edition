@@ -121,6 +121,7 @@ class Agent():
         self.rotation = glm.vec2(self.rotation[0] + drx * rotation_speed, self.rotation[1] + drz * rotation_speed)
 
         self.camera.update()
+        self.stream = self.app.get_stream(self)
 
     def set_uniform(self):
         self.mesh.program['m_model'].write(self.get_model_matrix())
@@ -206,26 +207,6 @@ class Agent():
         return (a[0][0] < b[1][0] and a[1][0] > b[0][0] and
                 a[0][1] < b[1][1] and a[1][1] > b[0][1] and
                 a[0][2] < b[1][2] and a[1][2] > b[0][2])
-
-    # def update_stream(self, stream):
-    #     self.stream = stream
     
     # def mutate(self):
     #     self.processor.mutate()
-    
-    # def get_sight_vector(self):
-    #     """ Returns the current line of sight vector indicating the direction
-    #     the player is looking.
-
-    #     """
-    #     x, y = self.rotation
-    #     # y ranges from -90 to 90, or -pi/2 to pi/2, so m ranges from 0 to 1 and
-    #     # is 1 when looking ahead parallel to the ground and 0 when looking
-    #     # straight up or down.
-    #     m = math.cos(math.radians(y))
-    #     # dy ranges from -1 to 1 and is -1 when looking straight down and 1 when
-    #     # looking straight up.
-    #     dy = math.sin(math.radians(y))
-    #     dx = math.cos(math.radians(x - 90)) * m
-    #     dz = math.sin(math.radians(x - 90)) * m
-    #     return (dx, dy, dz)

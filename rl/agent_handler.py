@@ -12,9 +12,6 @@ class AgentHandler:
             return
         for agent in self.agents:
             agent.update(dt)
-            # set camera to agent
-            self.app.set_camera(agent.camera)
-            self.app.get_stream()
 
     def render(self):
         for agent in self.agents:
