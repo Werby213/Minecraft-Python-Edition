@@ -22,7 +22,7 @@ def get_rotation_vector(rotation, rotation_speed):
     dx, dy = rotation_speed
     x, y = rotation
     nx, ny = x + dx, y + dy
-    ny = max(-90, min(90, y))
+    ny = max(-90, min(90, ny))
     return (nx - x, ny - y)
     
 def get_motion_vector(strafe, rotation):

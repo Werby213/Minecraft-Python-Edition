@@ -15,7 +15,9 @@ Control: ZQSD + LShift/Space + Mouse + Escape
 - [ ] Test to lag the game to see if it doesn't break it
 - [ ] Fix wall climbing
 - [ ] Special agent blocks (spawn, marker, death, etc.)
-- [ ] Rotation constiency between camera and agent
+- [x] Rotation constiency between camera and agent
+- [x] Fix agent camera clipping through blocks
+- [x] Fix agent camera frustrum
 - [x] Single Agent Handling
 - [ ] Multi Agent Handling
 - [ ] Agent 32x32 Camera with custom OpenGL settings

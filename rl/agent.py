@@ -26,7 +26,7 @@ class Agent():
         self.camera = AgentCamera(self)
 
         # perspective stream
-        self.stream = np.zeros((STREAM_SIZE, STREAM_SIZE, 3), dtype=np.uint8)
+        self.stream = np.zeros((*STREAM_ASPECT, 3), dtype=np.uint8)
 
         # self.processor = Processor(STREAM_SIZE)
 
@@ -112,7 +112,9 @@ class Agent():
         dy += self.dy * dt
         # collisions
         x, y, z = self.position
+        x, y, z = x - AGENT_WIDTH / 2, y, z - AGENT_WIDTH / 2
         x, y, z = self.collide((x + dx, y + dy, z + dz))
+        x, y, z = x + AGENT_WIDTH / 2, y, z + AGENT_WIDTH / 2
         self.position = glm.vec3(x, y, z)
 
         drx, drz = get_rotation_vector(self.rotation, self.rotation_speed)
@@ -125,11 +127,11 @@ class Agent():
         self.mesh.program['m_model'].write(self.get_model_matrix())
 
     def get_model_matrix(self):
-        m_model = glm.translate(glm.mat4(), glm.vec3(self.position) + glm.vec3(AGENT_WIDTH/2, 0, AGENT_WIDTH/2))
+        m_model = glm.translate(glm.mat4(), glm.vec3(self.position))
         
         # rotate around center y axis
         m_model = glm.rotate(m_model, glm.radians(-self.rotation[0]), glm.vec3(0, 1, 0))
-        m_model = glm.translate(m_model, glm.vec3(-0.5, 0, -0.5))
+        m_model = glm.translate(m_model, glm.vec3(-AGENT_WIDTH / 2, 0, -AGENT_WIDTH / 2))
         
         return m_model
     
@@ -169,10 +171,11 @@ class Agent():
     def collide(self, new_position):
         agent_aabb = [list(new_position), [new_position[0] + AGENT_WIDTH, new_position[1] + AGENT_HEIGHT, new_position[2] + AGENT_WIDTH]]
 
+        player_position = (int(new_position[0]), int(new_position[1]), int(new_position[2]))
         for dx in range(-1, 2):  # check the surrounding blocks in x dimension
             for dz in range(-1, 2):  # check the surrounding blocks in z dimension
                 for dy in range(AGENT_HEIGHT + 1):  # check each height
-                    block_position = (int(new_position[0] + dx), int(new_position[1] + dy), int(new_position[2] + dz))
+                    block_position = player_position[0] + dx, player_position[1] + dy, player_position[2] + dz
                     block_aabb = (block_position, (block_position[0] + 1, block_position[1] + 1, block_position[2] + 1))
 
                     if self.aabb_collision(agent_aabb, block_aabb):
@@ -198,7 +201,6 @@ class Agent():
                         # If the collision was with the ground (y-axis), stop falling
                         if min_axis == 1:
                             self.dy = 0
-
         return tuple(agent_aabb[0])
 
     def aabb_collision(self, a, b):
