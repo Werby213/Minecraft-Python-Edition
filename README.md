@@ -10,14 +10,14 @@ Control: ZQSD + LShift/Space + Mouse + Escape
 - [ ] Dynamic Seed for World Gen
 - [x] Customizable World Gen from functions (just like in the menu)
 - [x] Save & World and its entities
-- [ ] Spawn agents on the center of the position
+- [ ] Spawn agents in the center of the position
 - [ ] Camera rotation needs to loop to avoid overflowing
 - [ ] Test to lag the game to see if it doesn't break it
 - [ ] Fix wall climbing
 - [ ] Special agent blocks (spawn, marker, death, etc.)
-- [x] Rotation constiency between camera and agent
+- [x] Rotation consistency between camera and agent
 - [x] Fix agent camera clipping through blocks
-- [x] Fix agent camera frustrum
+- [x] Fix agent camera frustum
 - [x] Single Agent Handling
 - [ ] Multi Agent Handling
 - [ ] Agent 32x32 Camera with custom OpenGL settings
