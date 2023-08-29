@@ -14,6 +14,8 @@ from utils import generate_caption
 from terrain_gen.terrain_gen_flat import TerrainGenFlat
 from terrain_gen.terrain_gen_perlin import TerrainGenPerlin
 
+import tensorflow as tf
+
 class VoxelEngine:
     def initialize_pygame(self):
         pg.init()
@@ -37,6 +39,9 @@ class VoxelEngine:
         pg.event.set_grab(True)
 
         self.is_running = True
+
+    def initialize_tensorflow(self):
+        pass
     
     def set_camera(self, camera):
         self.camera = camera
@@ -75,6 +80,10 @@ class VoxelEngine:
     
     def on_init_load(self, voxels, player, filename, spawn_agents=False):
         self.initialize_pygame()
+
+        if spawn_agents:
+            self.initialize_tensorflow()
+
         self.textures = Textures(self)
         self.player = Player(self, glm.vec3(player[:3]), player[3:])
         self.shader_program = ShaderProgram(self)

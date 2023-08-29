@@ -3,9 +3,10 @@ from rl.agent_camera import AgentCamera
 from settings import *
 from meshes.agent_mesh import AgentMesh
 from utils import *
-# from processor import Processor
+from rl.agent_processor import AgentProcessor
 
-class Agent():
+
+class Agent:
     # yaw, pitch
     def __init__(self, voxel_handler, position, rotation):
         self.app = voxel_handler.app
@@ -27,73 +28,73 @@ class Agent():
         # perspective stream
         self.stream = np.zeros((*STREAM_ASPECT, 3), dtype=np.uint8)
 
-        # self.processor = Processor(STREAM_SIZE)
+        self.processor = AgentProcessor(self.stream.shape)
+        self.tick_time = 0
 
-    # def tick(self, model):
-    #     """ Called every tick to update the agent's state. """
-    #     prediction = self.processor.predict(self.stream)
+    def tick(self):
+        prediction = self.processor.predict(self.stream)
 
-    #     # first two values are x, z movement
-    #     dx, dz, rx, rz, jump, place, destroy = prediction[0]
-    #     if dx >= 0.5:
-    #         self.strafe = (1, self.strafe[1])
-    #     elif dx < 0.5:
-    #         self.strafe = (-1, self.strafe[1])
-        
-    #     if dz >= 0.5:
-    #         self.strafe = (self.strafe[0], 1)
-    #     elif dz < 0.5:
-    #         self.strafe = (self.strafe[0], -1)
-        
-    #     if rx >= 0.5:
-    #         self.rotation_speed = (0, -1)
-    #     elif rx < 0.5:
-    #         self.rotation_speed = (0, 1)
-
-    #     if rz >= 0.5:
-    #         self.rotation_speed = (-1, 0)
-    #     elif rz < 0.5:
-    #         self.rotation_speed = (1, 0)
-
-    #     if jump >= 0.5:
-    #         self.jump()
-        
-    #     if place >= 0.5:
-    #         self.place_block(model)
-
-    #     if destroy >= 0.5:
-    #         self.destroy_block(model)
-
-    def update(self, dt):
-        # inputs from pygame keyboard
-        keys = pg.key.get_pressed()
-        self.strafe = glm.vec2(0)
-        self.rotation_speed = glm.vec2(0)
-        if keys[pg.K_UP]:
+        # first two values are x, z movement
+        dx, dz, rx, rz, jump, place, destroy = prediction[0]
+        if dx >= 0.5:
             self.strafe = (1, self.strafe[1])
-        if keys[pg.K_DOWN]:
+        elif dx < 0.5:
             self.strafe = (-1, self.strafe[1])
-        if keys[pg.K_LEFT]:
+        
+        if dz >= 0.5:
             self.strafe = (self.strafe[0], 1)
-        if keys[pg.K_RIGHT]:
+        elif dz < 0.5:
             self.strafe = (self.strafe[0], -1)
-        if keys[pg.K_l]:
-            self.rotation_speed = (-1, 0)
-        if keys[pg.K_m]:
-            self.rotation_speed = (1, 0)
-        if keys[pg.K_o]:
+        
+        if rx >= 0.5:
             self.rotation_speed = (0, -1)
-        if keys[pg.K_p]:
+        elif rx < 0.5:
             self.rotation_speed = (0, 1)
 
-        # Check if the right shift key was just pressed
-        if keys[pg.K_RSHIFT] and not self.jump_key_pressed:
-            self.jump()
-            self.jump_key_pressed = True
+        if rz >= 0.5:
+            self.rotation_speed = (-1, 0)
+        elif rz < 0.5:
+            self.rotation_speed = (1, 0)
 
-        # Check if the right shift key was released
-        if not keys[pg.K_RSHIFT]:
-            self.jump_key_pressed = False
+        if jump >= 0.5:
+            self.jump()
+        
+        # if place >= 0.5:
+        #     self.place_block(model)
+        #
+        # if destroy >= 0.5:
+        #     self.destroy_block(model)
+
+    def update(self, dt):
+        # # inputs from pygame keyboard
+        # keys = pg.key.get_pressed()
+        # self.strafe = glm.vec2(0)
+        # self.rotation_speed = glm.vec2(0)
+        # if keys[pg.K_UP]:
+        #     self.strafe = (1, self.strafe[1])
+        # if keys[pg.K_DOWN]:
+        #     self.strafe = (-1, self.strafe[1])
+        # if keys[pg.K_LEFT]:
+        #     self.strafe = (self.strafe[0], 1)
+        # if keys[pg.K_RIGHT]:
+        #     self.strafe = (self.strafe[0], -1)
+        # if keys[pg.K_l]:
+        #     self.rotation_speed = (-1, 0)
+        # if keys[pg.K_m]:
+        #     self.rotation_speed = (1, 0)
+        # if keys[pg.K_o]:
+        #     self.rotation_speed = (0, -1)
+        # if keys[pg.K_p]:
+        #     self.rotation_speed = (0, 1)
+
+        # # Check if the right shift key was just pressed
+        # if keys[pg.K_RSHIFT] and not self.jump_key_pressed:
+        #     self.jump()
+        #     self.jump_key_pressed = True
+        #
+        # # Check if the right shift key was released
+        # if not keys[pg.K_RSHIFT]:
+        #     self.jump_key_pressed = False
 
         # walking
         speed = AGENT_WALKING_SPEED
@@ -122,6 +123,12 @@ class Agent():
 
         self.camera.update()
         self.stream = self.app.get_stream(self)
+
+        # each 1/10 of a second, tick the processor
+        self.tick_time += dt
+        if self.tick_time >= 0.1:
+            self.tick()
+            self.tick_time = 0
 
     def set_uniform(self):
         self.mesh.program['m_model'].write(self.get_model_matrix())
