@@ -1,5 +1,6 @@
 import pygame as pg
 import numpy as np
+from agent_camera import AgentCamera
 from settings import *
 from meshes.agent_mesh import AgentMesh
 from utils import *
@@ -21,6 +22,8 @@ class Agent():
 
         self.strafe = glm.vec2(0)
         self.rotation_speed = glm.vec2(0)
+
+        self.camera = AgentCamera(self)
 
         # perspective stream
         self.stream = np.zeros((STREAM_SIZE, STREAM_SIZE, 3), dtype=np.uint8)
@@ -79,6 +82,10 @@ class Agent():
             self.rotation_speed = (-1, 0)
         if keys[pg.K_m]:
             self.rotation_speed = (1, 0)
+        if keys[pg.K_o]:
+            self.rotation_speed = (0, -1)
+        if keys[pg.K_p]:
+            self.rotation_speed = (0, 1)
 
         # Check if the right shift key was just pressed
         if keys[pg.K_RSHIFT] and not self.jump_key_pressed:
@@ -111,6 +118,8 @@ class Agent():
         drx, drz = get_rotation_vector(self.rotation, self.rotation_speed)
         rotation_speed = dt * AGENT_ROTATION_SPEED
         self.rotation = glm.vec2(self.rotation[0] + drx * rotation_speed, self.rotation[1] + drz * rotation_speed)
+
+        self.camera.update()
 
     def set_uniform(self):
         self.mesh.program['m_model'].write(self.get_model_matrix())

@@ -37,12 +37,37 @@ class VoxelEngine:
         pg.event.set_grab(True)
 
         self.is_running = True
+    
+    def set_camera(self, camera):
+        self.camera = camera
+        self.shader_program.set_camera(camera)
+
+    def get_stream(self):
+        # Read the modern gl screen and store the screenshot into a numpy array
+        width, height = STREAM_ASPECT
+        # change the context viewport to the stream aspect ratio
+        self.ctx.viewport = (0, 0, width, height)
+        # render the scene
+        self.render(False)
+        
+        buffer = bytearray(width * height * 3)
+        self.ctx.screen.read_into(buffer, self.ctx.viewport, components=3, alignment=1)
+        screenshot = np.frombuffer(buffer, dtype=np.uint8).reshape(height, width, 3)
+        
+        # rotate the image 180 degrees
+        screenshot = np.rot90(screenshot, -1)
+
+        # set the viewport back to the window aspect ratio
+        self.ctx.viewport = (0, 0, WIN_RES.x, WIN_RES.y)
+
+        return screenshot
 
     def on_init_new(self, terrain_gen, filename):
         self.initialize_pygame()
         self.textures = Textures(self)
         self.player = Player(self, glm.vec3(CENTER_XZ, 17, CENTER_XZ), glm.vec2(-90, -45))
         self.shader_program = ShaderProgram(self)
+        self.set_camera(self.player)
         self.env = Environment(filename)
         self.env.on_init_new(self, terrain_gen)
     
@@ -51,24 +76,28 @@ class VoxelEngine:
         self.textures = Textures(self)
         self.player = Player(self, glm.vec3(player[:3]), player[3:])
         self.shader_program = ShaderProgram(self)
+        self.set_camera(self.player)
         self.env = Environment(filename)
 
         self.env.on_init_load(self, voxels, spawn_agents)
 
     def update(self):
+        self.set_camera(self.player)
         self.player.update()
-        self.shader_program.update()
 
         self.delta_time = self.clock.tick()
-        self.env.update(self.delta_time)
-
         self.time = pg.time.get_ticks() * 0.001
         pg.display.set_caption(generate_caption(self.clock, self.player, self.env))
 
-    def render(self):
+        self.render()
+        
+        self.env.update(self.delta_time)
+
+    def render(self, flip=True):
         self.ctx.clear(color=BG_COLOR)
         self.env.render()
-        pg.display.flip()
+        if flip:
+            pg.display.flip()
 
     def handle_events(self):
         for event in pg.event.get():
@@ -81,7 +110,6 @@ class VoxelEngine:
         while self.is_running:
             self.handle_events()
             self.update()
-            self.render()
             if self.env.agent_handler.frozen and not first_freeze:
                 self.env.agent_handler.unfreeze()
                 first_freeze = True
@@ -144,6 +172,7 @@ if __name__ == '__main__':
         if generate_or_load == 1:
             env_size = display_menu("Select env size", ["Small", "Medium", "Large"])
             env_type = display_menu("Select env type", ["Flat", "Perlin Noise"])
+            
             spawn_trees = 2 - display_menu("Spawn trees?", ["Yes", "No"])
             spawn_caves = 2 - display_menu("Spawn caves?", ["Yes", "No"])
 
