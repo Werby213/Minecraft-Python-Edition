@@ -8,7 +8,7 @@ from rl.agent_processor import AgentProcessor
 
 class Agent:
     # yaw, pitch
-    def __init__(self, voxel_handler, position, rotation):
+    def __init__(self, voxel_handler, policy, position, rotation):
         self.app = voxel_handler.app
         self.handler = voxel_handler
         self.position = glm.vec3(position)
@@ -31,30 +31,43 @@ class Agent:
         self.processor = AgentProcessor(self.stream.shape)
         self.tick_time = 0
 
+        self.policy = policy
+        self.reward = 0
+
     def tick(self):
+        self.reward += self.policy.get_reward(self, self.app.env.world)
+
         prediction = self.processor.predict(self.stream)
+        dead_zone = 0.2
 
-        # first two values are x, z movement
         dx, dz, rx, rz, jump, place, destroy = prediction[0]
-        if dx >= 0.5:
+        if dx >= 0.5 + dead_zone / 2:
             self.strafe = (1, self.strafe[1])
-        elif dx < 0.5:
+        elif dx < 0.5 - dead_zone / 2:
             self.strafe = (-1, self.strafe[1])
+        else:
+            self.strafe = (0, self.strafe[1])
         
-        if dz >= 0.5:
+        if dz >= 0.5 + dead_zone / 2:
             self.strafe = (self.strafe[0], 1)
-        elif dz < 0.5:
+        elif dz < 0.5 - dead_zone / 2:
             self.strafe = (self.strafe[0], -1)
+        else:
+            self.strafe = (self.strafe[0], 0)
         
-        if rx >= 0.5:
-            self.rotation_speed = (0, -1)
-        elif rx < 0.5:
-            self.rotation_speed = (0, 1)
+        if rx >= 0.5 + dead_zone / 2:
+            self.rotation_speed = (self.rotation_speed[0], -1)
+        elif rx < 0.5 - dead_zone / 2:
+            self.rotation_speed = (self.rotation_speed[0], 1)
+        else:
+            self.rotation_speed = (self.rotation_speed[0], 0)
 
-        if rz >= 0.5:
-            self.rotation_speed = (-1, 0)
-        elif rz < 0.5:
-            self.rotation_speed = (1, 0)
+        if rz >= 0.5 + dead_zone / 2:
+            self.rotation_speed = (-1, self.rotation_speed[1])
+        elif rz < 0.5 - dead_zone / 2:
+            self.rotation_speed = (1, self.rotation_speed[1])
+        else:
+            self.rotation_speed = (0, self.rotation_speed[1])
 
         if jump >= 0.5:
             self.jump()
@@ -124,9 +137,9 @@ class Agent:
         self.camera.update()
         self.stream = self.app.get_stream(self)
 
-        # each 1/10 of a second, tick the processor
+        # each 1/3 of a second, tick the processor
         self.tick_time += dt
-        if self.tick_time >= 0.1:
+        if self.tick_time >= 0.33:
             self.tick()
             self.tick_time = 0
 

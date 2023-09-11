@@ -14,9 +14,14 @@ from utils import generate_caption
 from terrain_gen.terrain_gen_flat import TerrainGenFlat
 from terrain_gen.terrain_gen_perlin import TerrainGenPerlin
 
+from rl.policies.policy_get_highest import PolicyGetHighest
+
 import tensorflow as tf
 
 class VoxelEngine:
+    def __init__(self, mode):
+        self.mode = mode
+
     def initialize_pygame(self):
         pg.init()
         pg.display.gl_set_attribute(pg.GL_CONTEXT_MAJOR_VERSION, MAJOR_VER)
@@ -78,7 +83,7 @@ class VoxelEngine:
         self.env = Environment(filename)
         self.env.on_init_new(self, terrain_gen)
     
-    def on_init_load(self, voxels, player, filename, spawn_agents=False):
+    def on_init_load(self, voxels, player, filename, spawn_agents=False, policy=None):
         self.initialize_pygame()
 
         if spawn_agents:
@@ -90,10 +95,13 @@ class VoxelEngine:
         self.set_camera(self.player)
         self.env = Environment(filename)
 
-        self.env.on_init_load(self, voxels, spawn_agents)
+        self.env.on_init_load(self, voxels, spawn_agents, policy)
 
     def update(self):
-        self.set_camera(self.player)
+        print(self.mode)
+        if self.mode != 1:
+            self.set_camera(self.player)
+        
         self.player.update()
 
         self.delta_time = self.clock.tick()
@@ -171,13 +179,13 @@ def display_menu(title, options, default=1):
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-    app = VoxelEngine()
     mode = display_menu("Select mode", ["Environement Editing", "Agent Training", "Trained Agent Viewing"])
+    app = VoxelEngine(mode - 1)
     
     if not os.path.exists("saves"):
         os.makedirs("saves")
     saved_worlds = [f for f in os.listdir("saves") if os.path.isdir(os.path.join("saves", f))]
-    
+
     if mode == 1:
         generate_or_load = display_menu("New or load env", ["New", "Load"])
         if generate_or_load == 1:
@@ -204,7 +212,7 @@ if __name__ == '__main__':
         loaded_world_name = saved_worlds[selected_world - 1]
         voxels, player = app.load_env(loaded_world_name)
 
-        app.on_init_load(voxels, player, loaded_world_name, True)
+        app.on_init_load(voxels, player, loaded_world_name, True, PolicyGetHighest())
     elif mode == 3:
         selected_world = display_menu("Select environement", saved_worlds)
         pass

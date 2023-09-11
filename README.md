@@ -21,7 +21,7 @@ Control: ZQSD + LShift/Space + Mouse + Escape
 - [x] Single Agent Handling
 - [ ] Multi Agent Handling
 - [ ] Agent 32x32 Camera with custom OpenGL settings
-- [ ] RL processor for agents
+- [x] RL processor for agents
 - [ ] RL training steps
 - [ ] RL mutations
 - [ ] Base class for RL fitness

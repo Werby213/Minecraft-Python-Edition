@@ -56,4 +56,5 @@ def generate_caption(clock, player, env):
     if len(env.agent_handler.agents) > 0:
         agent = env.agent_handler.agents[0]
         caption += f'Agent Position: ({agent.position.x:.2f}, {agent.position.y:.2f}, {agent.position.z:.2f})'
+        caption += f'Agent Reward: {agent.reward}'
     return caption
