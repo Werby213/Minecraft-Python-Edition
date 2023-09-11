@@ -1,4 +1,4 @@
-# Minecraft
+# Minecraft RL
 Minecraft Clone in Python and OpenGL to run Reinforcement Learning trainings.
 
 Control: ZQSD + LShift/Space + Mouse + Escape
