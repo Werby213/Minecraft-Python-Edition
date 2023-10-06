@@ -38,38 +38,38 @@ class Agent:
         self.reward += self.policy.get_reward(self, self.app.env.world)
 
         prediction = self.processor.predict(self.stream)
-        dead_zone = 0.2
 
-        dx, dz, rx, rz, jump, place, destroy = prediction[0]
-        if dx >= 0.5 + dead_zone / 2:
+        z, q, s, d, space, l_up, l_left, l_down, l_right, place, destroy = prediction[0]
+        if d >= 0.5:
             self.strafe = (1, self.strafe[1])
-        elif dx < 0.5 - dead_zone / 2:
+        elif q >= 0.5:
             self.strafe = (-1, self.strafe[1])
         else:
             self.strafe = (0, self.strafe[1])
         
-        if dz >= 0.5 + dead_zone / 2:
+        if z >= 0.5:
             self.strafe = (self.strafe[0], 1)
-        elif dz < 0.5 - dead_zone / 2:
+        elif s >= 0.5:
             self.strafe = (self.strafe[0], -1)
         else:
             self.strafe = (self.strafe[0], 0)
         
-        if rx >= 0.5 + dead_zone / 2:
-            self.rotation_speed = (self.rotation_speed[0], -1)
-        elif rx < 0.5 - dead_zone / 2:
-            self.rotation_speed = (self.rotation_speed[0], 1)
-        else:
-            self.rotation_speed = (self.rotation_speed[0], 0)
+        # temp remove TODO
+        # if rx >= 0.5 + dead_zone / 2:
+        #     self.rotation_speed = (self.rotation_speed[0], -1)
+        # elif rx < 0.5 - dead_zone / 2:
+        #     self.rotation_speed = (self.rotation_speed[0], 1)
+        # else:
+        #     self.rotation_speed = (self.rotation_speed[0], 0)
 
-        if rz >= 0.5 + dead_zone / 2:
+        if l_left >= 0.5:
             self.rotation_speed = (-1, self.rotation_speed[1])
-        elif rz < 0.5 - dead_zone / 2:
+        elif l_right >= 0.5:
             self.rotation_speed = (1, self.rotation_speed[1])
         else:
             self.rotation_speed = (0, self.rotation_speed[1])
 
-        if jump >= 0.5:
+        if space >= 0.5:
             self.jump()
         
         # if place >= 0.5:
@@ -110,6 +110,7 @@ class Agent:
         #     self.jump_key_pressed = False
 
         # walking
+        dt = dt * 1000
         speed = AGENT_WALKING_SPEED
         d = dt * speed # distance covered this tick.
         dx, dy, dz = get_motion_vector(self.strafe, self.rotation)
