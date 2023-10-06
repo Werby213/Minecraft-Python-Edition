@@ -53,7 +53,7 @@ def generate_caption(clock, player, env):
     caption += f'Position: ({player.position.x:.2f}, {player.position.y:.2f}, {player.position.z:.2f}) | '
     caption += f'Velocity: ({player.velocity.x:.2f}, {player.velocity.y:.2f}, {player.velocity.z:.2f}) | '
     # first agent if exists
-    if len(env.agent_handler.agents) > 0:
+    if env.spawn_agents and len(env.agent_handler.agents) > 0:
         agent = env.agent_handler.agents[0]
         caption += f'Agent Position: ({agent.position.x:.2f}, {agent.position.y:.2f}, {agent.position.z:.2f})'
         caption += f'Agent Reward: {agent.reward}'

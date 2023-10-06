@@ -37,26 +37,26 @@ class Environment:
         self.water = Water(app)
         logging.info("Initializing clouds...")
         self.clouds = Clouds(app)
+        self.spawn_agents = spawn_agents
         
-        logging.info("Initializing agents...")
-        # Agents
-        self.agent_handler = AgentHandler(self.world.voxel_handler, policy)
-
         if spawn_agents:
+            logging.info("Initializing agents...")
+            # Agents
             # find the agent spawn block in the world
             agent_spawn_block = None
-            agent_spawn_block_pos = self.app.player.position + glm.vec3(0, 0, 5) # TODO find a better way to do this
-            
-            self.agent_handler.spawn_agents(1, agent_spawn_block_pos, glm.vec2(0, 0))
-            self.agent_handler.freeze()
+            agent_spawn_block_pos = glm.vec3(CENTER_XZ, 15, CENTER_XZ) # TODO find a better way to do this
+            agent_spawn_rotation = glm.vec2(90, 0)
+            self.agent_handler = AgentHandler(self.world.voxel_handler, policy, agent_spawn_block_pos, agent_spawn_rotation)
+            self.agent_handler.start_training()
 
     def update(self, dt):
         self.world.update()
         self.voxel_marker.update()
         self.clouds.update()
-        self.agent_handler.update(dt)
+        if self.spawn_agents:
+            self.agent_handler.update(dt)
 
-    def render(self):
+    def render(self, renderAgents):
         # chunks rendering
         self.world.render()
 
@@ -70,4 +70,5 @@ class Environment:
         self.voxel_marker.render()
 
         # agents rendering
-        self.agent_handler.render()
+        if self.spawn_agents or renderAgents:
+            self.agent_handler.render()

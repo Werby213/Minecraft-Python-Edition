@@ -12,7 +12,7 @@ class Player(Camera):
     def update(self):
         self.keyboard_control()
         self.mouse_control()
-        self.position += self.velocity * self.app.delta_time
+        self.position += self.velocity * self.app.delta_time * 1000
         super().update()
 
     def handle_event(self, event):
@@ -26,6 +26,8 @@ class Player(Camera):
         if event.type == pg.KEYDOWN:
             if event.key == pg.K_e:
                 self.app.save_env()
+            if event.key == pg.K_c:
+                self.app.switch_camera()
 
     def mouse_control(self):
         mouse_dx, mouse_dy = pg.mouse.get_rel()
