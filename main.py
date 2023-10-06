@@ -40,6 +40,8 @@ class VoxelEngine:
         self.delta_time = 0
         self.time = 0
 
+        self.camera_mode = 0
+
         pg.mouse.set_visible(False)
         pg.event.set_grab(True)
 
@@ -60,7 +62,7 @@ class VoxelEngine:
         # change the context viewport to the stream aspect ratio
         self.ctx.viewport = (0, 0, width, height)
         # render the scene
-        self.render(False)
+        self.render(False, False)
         
         buffer = bytearray(width * height * 3)
         self.ctx.screen.read_into(buffer, self.ctx.viewport, components=3, alignment=1)
@@ -98,23 +100,26 @@ class VoxelEngine:
         self.env.on_init_load(self, voxels, spawn_agents, policy)
 
     def update(self):
-        print(self.mode)
-        if self.mode != 1:
+        if self.camera_mode == 0:
             self.set_camera(self.player)
         
         self.player.update()
 
-        self.delta_time = self.clock.tick()
+        self.delta_time = self.clock.tick() * 0.001
         self.time = pg.time.get_ticks() * 0.001
         pg.display.set_caption(generate_caption(self.clock, self.player, self.env))
 
-        self.render()
+        self.render(self.camera_mode != 0)
         
         self.env.update(self.delta_time)
+    
+    def switch_camera(self):
+        if self.mode != 0:
+            self.camera_mode = (self.camera_mode + 1) % 2
 
-    def render(self, flip=True):
+    def render(self, renderAgents, flip=True):
         self.ctx.clear(color=BG_COLOR)
-        self.env.render()
+        self.env.render(renderAgents)
         if flip:
             pg.display.flip()
 
@@ -129,11 +134,14 @@ class VoxelEngine:
         while self.is_running:
             self.handle_events()
             self.update()
-            if self.env.agent_handler.frozen and not first_freeze:
+            if self.env.spawn_agents and self.env.agent_handler.frozen and not first_freeze:
                 self.env.agent_handler.unfreeze()
                 first_freeze = True
         pg.quit()
-        sys.exit()
+        if self.mode == 1:
+            self.env.agent_handler.plot_history()
+            self.env.agent_handler.save_best_model()
+        # sys.exit()
 
     def save_env(self):
         # create the folder "saves" if it doesn't exist
