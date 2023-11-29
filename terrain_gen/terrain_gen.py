@@ -1,5 +1,7 @@
+import logging
+
 from noise import noise2, noise3
-from random import random
+from random import *
 import settings as sg
 from numba import njit
 

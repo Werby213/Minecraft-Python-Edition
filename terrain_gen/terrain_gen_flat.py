@@ -1,5 +1,6 @@
 from terrain_gen.terrain_gen import TerrainGen
 from noise import noise2, noise3
+import logging
 from random import random
 from settings import *
 import math

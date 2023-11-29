@@ -1,3 +1,4 @@
+#agent.py
 import pygame as pg
 from rl.agent_camera import AgentCamera
 from settings import *
@@ -168,19 +169,19 @@ class Agent:
         """ Rotates the player by the given amount. """
         self.rotation = rotation
     
-    # def place_block(self, model):
-    #     vector = self.get_sight_vector()
-    #     _, previous = model.hit_test(self.position, vector)
-    #     if previous:
-    #         model.add_block(previous, self.block)
+    def place_block(self, model):
+        vector = self.get_sight_vector()
+        _, previous = model.hit_test(self.position, vector)
+        if previous:
+            model.add_block(previous, self.block)
 
-    # def destroy_block(self, model):
-    #     vector = self.get_sight_vector()
-    #     block, _ = model.hit_test(self.position, vector)
-    #     if block:
-    #         texture = model.world[block]
-    #         if texture != STONE:
-    #             model.remove_block(block)
+    def destroy_block(self, model):
+        vector = self.get_sight_vector()
+        block, _ = model.hit_test(self.position, vector)
+        if block:
+            texture = model.world[block]
+            if texture != STONE:
+                model.remove_block(block)
 
     def jump(self):
         """ Called when the user presses the jump key. """

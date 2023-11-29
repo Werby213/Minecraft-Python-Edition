@@ -2,6 +2,10 @@ from rl.agent import Agent
 from settings import *
 import moderngl as mgl
 import pygame as pg
+
+import threading
+import time
+
 import sys
 from shader_program import ShaderProgram
 from environment import Environment
@@ -46,6 +50,7 @@ class VoxelEngine:
         pg.event.set_grab(True)
 
         self.is_running = True
+        print("Num GPUs Available: ", len(tf.config.experimental.list_physical_devices('GPU') + tf.config.experimental.list_physical_devices('GPU')))
 
     def initialize_tensorflow(self):
         pass
@@ -63,11 +68,11 @@ class VoxelEngine:
         self.ctx.viewport = (0, 0, width, height)
         # render the scene
         self.render(False, False)
-        
+
         buffer = bytearray(width * height * 3)
         self.ctx.screen.read_into(buffer, self.ctx.viewport, components=3, alignment=1)
         screenshot = np.frombuffer(buffer, dtype=np.uint8).reshape(height, width, 3)
-        
+
         # rotate the image 180 degrees
         screenshot = np.rot90(screenshot, -1)
 
@@ -79,12 +84,15 @@ class VoxelEngine:
     def on_init_new(self, terrain_gen, filename):
         self.initialize_pygame()
         self.textures = Textures(self)
+
+        self.env = Environment(filename)
         self.player = Player(self, glm.vec3(CENTER_XZ, 17, CENTER_XZ), glm.vec2(-90, -45))
+
         self.shader_program = ShaderProgram(self)
         self.set_camera(self.player)
-        self.env = Environment(filename)
+
         self.env.on_init_new(self, terrain_gen)
-    
+
     def on_init_load(self, voxels, player, filename, spawn_agents=False, policy=None):
         self.initialize_pygame()
 
@@ -92,10 +100,10 @@ class VoxelEngine:
             self.initialize_tensorflow()
 
         self.textures = Textures(self)
-        self.player = Player(self, glm.vec3(player[:3]), player[3:])
-        self.shader_program = ShaderProgram(self)
-        self.set_camera(self.player)
         self.env = Environment(filename)
+        self.player = Player(self, glm.vec3(player[:3]), player[3:])
+        self.shader_program = ShaderProgram(self)  # Move this line after creating the Player object
+        self.set_camera(self.player)
 
         self.env.on_init_load(self, voxels, spawn_agents, policy)
 
@@ -112,7 +120,7 @@ class VoxelEngine:
         self.render(self.camera_mode != 0)
         
         self.env.update(self.delta_time)
-    
+
     def switch_camera(self):
         if self.mode != 0:
             self.camera_mode = (self.camera_mode + 1) % 2
@@ -189,7 +197,7 @@ if __name__ == '__main__':
 
     mode = display_menu("Select mode", ["Environement Editing", "Agent Training", "Trained Agent Viewing"])
     app = VoxelEngine(mode - 1)
-    
+
     if not os.path.exists("saves"):
         os.makedirs("saves")
     saved_worlds = [f for f in os.listdir("saves") if os.path.isdir(os.path.join("saves", f))]
@@ -199,7 +207,7 @@ if __name__ == '__main__':
         if generate_or_load == 1:
             env_size = display_menu("Select env size", ["Small", "Medium", "Large"])
             env_type = display_menu("Select env type", ["Flat", "Perlin Noise"])
-            
+
             spawn_trees = 2 - display_menu("Spawn trees?", ["Yes", "No"])
             spawn_caves = 2 - display_menu("Spawn caves?", ["Yes", "No"])
 

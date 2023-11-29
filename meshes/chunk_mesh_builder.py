@@ -1,5 +1,5 @@
 from settings import *
-from numba import uint8
+from numba import uint8, prange
 
 
 @njit
@@ -105,9 +105,9 @@ def build_chunk_mesh(chunk_voxels, format_size, chunk_pos, world_voxels):
     vertex_data = np.empty(CHUNK_VOL * 18 * format_size, dtype='uint32')
     index = 0
 
-    for x in range(CHUNK_SIZE):
-        for y in range(CHUNK_SIZE):
-            for z in range(CHUNK_SIZE):
+    for x in prange(CHUNK_SIZE):
+        for y in prange(CHUNK_SIZE):
+            for z in prange(CHUNK_SIZE):
                 voxel_id = chunk_voxels[x + CHUNK_SIZE * z + CHUNK_AREA * y]
 
                 if not voxel_id:

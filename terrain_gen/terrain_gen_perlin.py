@@ -2,6 +2,7 @@ from noise import noise2, noise3
 from random import random
 from settings import *
 import math
+import logging
 from numba import njit
 from terrain_gen.terrain_gen import TerrainGen
 

@@ -2,7 +2,7 @@
 Minecraft Clone in Python and OpenGL to run Reinforcement Learning trainings.
 This project is W.I.P, many functionnalities are missing and the code is under optimized.
 
-Control: WASD + LShift/Space + Mouse + Escape + F8 + C
+Control: ZQSD + LShift/Space + Mouse + Escape
 
 ## TODO
 - [x] Base class for World Gen
@@ -29,11 +29,5 @@ Control: WASD + LShift/Space + Mouse + Escape + F8 + C
 - [ ] Test types of RL fitness
 - [ ] Saved world RL training and viewing settings
 - [ ] RL training saving
-
-- [x] Collision for player
-- [x] Simulate inertia for player movement
-- [ ] inventory
-- [ ] Fix incorect player spawn
-- [ ] Archiving save files
 
 ![minecraft](/screenshot/0.jpg)
