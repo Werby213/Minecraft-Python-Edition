@@ -1,11 +1,11 @@
 #player.py
 import pygame as pg
 import pygame.time
+from numba import njit
 
 from utils import *
 from camera import Camera
 from settings import *
-
 
 class Player(Camera):
     def __init__(self, app, position, rotation):
@@ -101,7 +101,7 @@ class Player(Camera):
             if self.flying_mode:
                 self.damping = PLAYER_DAMPING_AIR
             else:
-                self.damping = 15
+                self.damping = 4
 
         self.velocity += (acceleration - self.damping * self.velocity) * self.app.delta_time
 
@@ -121,14 +121,17 @@ class Player(Camera):
 
         self.velocity.y = self.y_vel
 
+
     def is_on_ground(self):
         player_position = (int(self.position.x), int(self.position.y), int(self.position.z))
         for dy in range(1, AGENT_HEIGHT + 1):
             block_position = player_position[0], player_position[1] - dy, player_position[2]
-            voxel_id, _, _, _ = self.app.env.world.voxel_handler.get_voxel_id(glm.ivec3(block_position))
+            voxel_id = self.app.env.world.voxel_handler.get_voxel_id(glm.ivec3(block_position))[0]
             if voxel_id:
                 return True
         return False
+
+
     def handle_collisions(self, new_position):
         player_aabb = self.get_player_aabb()
 

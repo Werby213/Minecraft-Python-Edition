@@ -11,7 +11,7 @@ class TerrainGen:
         self.world_size = 3 if env_size == 1 else 6 if env_size == 2 else 12
         self.spawn_trees = spawn_trees
         self.spawn_caves = spawn_caves
-
+    @staticmethod
     def get_height(self, x, z):
         pass
 
@@ -19,6 +19,7 @@ class TerrainGen:
     def get_index(x, y, z):
         return x + sg.CHUNK_SIZE * z + sg.CHUNK_AREA * y
 
+    @staticmethod
     def set_voxel_id(self, voxels, x, y, z, wx, wy, wz, world_height):
         pass
 

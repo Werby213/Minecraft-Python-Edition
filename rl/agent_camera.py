@@ -11,7 +11,13 @@ class AgentCamera(Camera):
         return self.agent.position + glm.vec3(0, AGENT_HEIGHT * 0.8, 0), self.agent.rotation.x + 90, self.agent.rotation.y
     
     def update(self):
+        delta_time = None
+        is_moving = None
+        on_ground = None
+        velocity = None
+
         self.position, self.yaw, self.pitch = self.get_coordinates()
         self.yaw = glm.radians(self.yaw)
         self.pitch = glm.radians(self.pitch)
-        super().update()
+
+        super().update(delta_time, is_moving, on_ground, velocity)

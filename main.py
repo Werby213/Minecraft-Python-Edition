@@ -159,20 +159,18 @@ class VoxelEngine:
         path_0 = os.path.join("saves", self.env.filename)
         if not os.path.exists(path_0):
             os.makedirs(path_0)
-        path = os.path.join(path_0, "voxels.npy")
-        np.save(path, app.env.world.voxels)
-        path = os.path.join(path_0, "player.npy")
-        np.save(path, [app.player.position.x, app.player.position.y, app.player.position.z, app.player.yaw, app.player.pitch])
+        path = os.path.join(path_0, "data.npz")
+        np.savez_compressed(path, voxels=app.env.world.voxels, player=[app.player.position.x, app.player.position.y, app.player.position.z, app.player.yaw, app.player.pitch])
 
     def load_env(self, file_name):
         # load the environment voxels from a file
         # create the folder "saves" if it doesn't exist
         if not os.path.exists("saves"):
             os.makedirs("saves")
-        path = os.path.join("saves", file_name, "voxels.npy")
-        voxels = np.load(path)
-        path = os.path.join("saves", file_name, "player.npy")
-        player = np.load(path)
+        path = os.path.join("saves", file_name, "data.npz")
+        data = np.load(path)
+        voxels = data['voxels']
+        player = data['player']
         return voxels, player
 
 def display_menu(title, options, default=1):
