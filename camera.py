@@ -2,15 +2,17 @@ import glm
 from settings import *
 from frustum import Frustum
 import time
+from random import uniform
 class Camera:
     def __init__(self, position, rotation):
         yaw, pitch = rotation
         self.position = glm.vec3(position)
+        self.position.y -=1
         self.yaw = yaw
         self.pitch = pitch
         self.yaw_sway = 0.0
         self.pitch_sway = 0.0
-
+        self.sway_timer = 0.0
         self.up = glm.vec3(0, 1, 0)
         self.right = glm.vec3(1, 0, 0)
         self.forward = glm.vec3(0, 0, -1)
@@ -22,7 +24,7 @@ class Camera:
 
     def update(self, delta_time, is_moving, on_ground, velocity):
         self.update_vectors()
-        self.update_sway(delta_time, is_moving, on_ground, velocity)
+        self.camera_sway(delta_time, is_moving, on_ground, velocity)
         self.update_view_matrix()
 
     def update_view_matrix(self):
@@ -41,20 +43,29 @@ class Camera:
         self.right = glm.normalize(glm.cross(self.forward, glm.vec3(0, 1, 0)))
         self.up = glm.normalize(glm.cross(self.right, self.forward))
 
-    def update_sway(self, delta_time, is_moving, on_ground, velocity):
-        sway_speed = 1
-        sway_amplitude = 1
-        current_time = time.time()
+    def camera_sway(self, delta_time, is_moving, on_ground, velocity):
+        if not on_ground:
+            return
 
-        if is_moving:
-            if on_ground == False:
-                sway_speed *= glm.length(velocity)
-                self.yaw_sway = glm.sin(current_time * sway_speed) * sway_amplitude
-                self.pitch_sway = glm.cos(current_time * sway_speed) * sway_amplitude
+        # Sway magnitude and frequency
+        sway_magnitude = 0.002
+        sway_frequency = 7.0
+        # Velocity influence on sway
+        velocity_influence = 50
 
-                self.yaw += self.yaw_sway * delta_time
-                self.pitch += self.pitch_sway * delta_time
+        self.sway_timer += delta_time * sway_frequency
 
+        sway_offset_x = sway_magnitude * glm.sin(self.sway_timer)
+        sway_offset_y = sway_magnitude * glm.sin(2 * self.sway_timer)
+
+        sway_offset_x *= velocity.x * velocity_influence
+        sway_offset_y *= velocity.z * velocity_influence
+
+        sway_right = glm.normalize(self.right + sway_offset_x * self.up)
+        sway_up = glm.normalize(self.up + sway_offset_y * self.right)
+
+        self.right = sway_right
+        self.up = sway_up
 
 
 
