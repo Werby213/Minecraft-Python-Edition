@@ -1,4 +1,4 @@
-# Minecraft RL
+# Minecraft Python Edition
 Minecraft Clone in Python and OpenGL to run Reinforcement Learning trainings.
 This project is W.I.P, many functionnalities are missing and the code is under optimized.
 
