@@ -34,5 +34,6 @@ Control: WASD + LShift/Space + Mouse + Escape + F8 + C
 - [x] Simulate inertia for player movement
 - [ ] inventory
 - [ ] Fix incorect player spawn
+- [ ] Archiving save files
 
 ![minecraft](/screenshot/0.jpg)
