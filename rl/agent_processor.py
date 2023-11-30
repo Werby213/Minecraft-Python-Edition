@@ -51,7 +51,7 @@ class AgentProcessor:
         self.model = tf.saved_model.load(dir_path, tags=[tag_constants.SERVING])
         signature_keys = list(self.model.signatures.keys())
         self.graph_func = self.model.signatures[signature_keys[0]]
-    
+
     def predict_rt(self, stream):
         stream = np.expand_dims(stream, axis=0)
         return self.graph_func(stream)
@@ -63,7 +63,7 @@ class AgentProcessor:
 
     def set_weights(self, weights):
         self.model.set_weights(weights)
-    
+
     def get_weights(self):
         return self.model.get_weights()
 
